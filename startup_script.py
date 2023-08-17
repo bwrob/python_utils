@@ -6,7 +6,6 @@ import pyautogui
 user = 'bw200'
 path_dict = {
     'powershell': 'C:\\windows\\system32\\windowspowershell\\v1.0\\powershell.exe',
-    'onenote': 'C:\\',
     'temp_path': 'C:\\temp\\'
 }
 
@@ -30,9 +29,9 @@ def folder_path_files(path):
     return list(zip(files, [5] * len(files)))
 
 
-if __name__ == '__name__':
-    processes = ['powershell']
+if __name__ == '__main__':
+    processes = [('powershell', 5)]
     processes += folder_path_files('temp_path')
-
+    
     for process in processes:
         start_process(*process)
