@@ -29,10 +29,11 @@ def get_logger(logger_name, dir_path=None, file_name=''):
 
     return logger
 
+
 class Logger:
     instance = None
 
-    def __init__(self, cls, logger=None):
+    def __init__(self, logger=None):
         if self.instance is not None:
             self.instance = logger
 
@@ -53,7 +54,7 @@ class Logger:
 
 
 def init_logger(logger_name, dir_path=None, file_name=''):
-    logger = get_logger(logger_name, dir_path=None, file_name='')
+    logger = get_logger(logger_name, dir_path=dir_path, file_name=file_name)
     Logger(logger)
 
 

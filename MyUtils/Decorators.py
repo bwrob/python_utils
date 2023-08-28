@@ -1,8 +1,10 @@
 from time import perf_counter
 from functools import wraps
 
-
 FUNCTIONS = dict()
+DEFAULT_VALUE_DEBUG_MODE = True
+DEFAULT_VALUE_PRINT_VALUE = False
+DEFAULT_VALUE_TIMER = True
 
 
 def time(func):
@@ -14,43 +16,46 @@ def time(func):
         start_time = perf_counter()
         output = func(*args, **kwargs)
         end_time = perf_counter()
-        duration = end_time-start_time
+        duration = end_time - start_time
         print(f"\nRuntime of {func.__name__!r} was {duration} seconds.")
         return output
     return handler
 
 
-def debug_decorator(func):
-    """
-    Print the function signature and return value
-    """
-    @wraps(func)
-    def wrapper_debug(*args, **kwargs):
-        args_repr = [repr(a) for a in args]
-        kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]
-        signature = ", ".join(args_repr + kwargs_repr)
-        print(f"Calling {func.__name__}({signature})")
-        value = func(*args, **kwargs)
-        print(f"{func.__name__!r} returned {value!r}")
-        return value
-    return wrapper_debug
+def debugging(debug_mode, print_call_output, timer):
+    def wrapper(func):
+        @wraps(func)
+        def wrapped(*args, **kwargs):
+            if print_call_output:
+                args_repr = [repr(a) for a in args]
+                kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]
+                signature = ", ".join(args_repr + kwargs_repr)
+                print(f"Calling {func.__name__}({signature})")
+            if timer:
+                tic = perf_counter()
+            # actual function call
+            result = func(debug_mode, *args, **kwargs)
+            if timer:
+                toc = perf_counter()
+                print("{} evaluated in {} seconds".format(func.__name__, toc - tic))
+            if print_call_output:
+                print(f"{func.__name__!r} returned {result!r}")
+            return result
+        return wrapped
+    return wrapper
 
 
-def dummy_decorator(func):
+def debug(debug_mode=DEFAULT_VALUE_DEBUG_MODE,
+          print_value=DEFAULT_VALUE_PRINT_VALUE,
+          timer=DEFAULT_VALUE_TIMER,
+          ):
     """
-    Do-nothing decorator
+    Decorator. If no debuging flags are enabled, just return the function.
     """
-    return func
-
-
-def debug(is_debug):
-    """
-    Print info about call/output
-    """
-    if is_debug:
-        return debug_decorator
+    if any(control := (debug_mode, print_value, timer)):
+        return debugging(*control)
     else:
-        return dummy_decorator
+        return lambda x: x
 
 
 def register(func):
@@ -66,11 +71,13 @@ def memo(func):
     Keep a cache of previous function calls (memoization)
     This is just mock up better use @functools.lru_cache(maxsize=)
     """
+
     @wraps(func)
     def wrapper_memoize(*args, **kwargs):
         cache_key = args + tuple(kwargs.items())
         if cache_key not in wrapper_memoize.cache:
             wrapper_memoize.cache[cache_key] = func(*args, **kwargs)
         return wrapper_memoize.cache[cache_key]
+
     wrapper_memoize.cache = dict()
     return wrapper_memoize
