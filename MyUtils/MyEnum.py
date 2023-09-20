@@ -1,8 +1,10 @@
-from enum import Enum
+from enum import Enum, auto
 from typing import Any
 
 
 class MyEnum(Enum):
+    def _generate_next_value_(name, start, count, last_values):
+        return name
 
     @classmethod
     def list(cls) -> list[str]:
@@ -15,3 +17,14 @@ class MyEnum(Enum):
             if member.name.lower() == value:
                 return member
         return None
+
+
+if __name__ == "__main__":
+    class TestEnum(MyEnum):
+        test = auto()
+        enumz = auto()
+
+    print(
+        TestEnum.list(),
+        TestEnum('TeSt'),
+    )
